@@ -1,132 +1,221 @@
-.gameCard {
-  padding: 0;
-  overflow: hidden;
+.gameRoot {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
 }
 
-.gameHeader {
+.gameViewport {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  background: var(--surface);
+}
+
+.gameNav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
+  gap: 0.35rem 0.5rem;
+  flex-shrink: 0;
+  padding: 0.35rem 0;
   border-bottom: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.25);
 }
 
-.gameTitle {
+.gameNavTitle {
+  justify-self: start;
   margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
+  padding: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
-.subtle {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-.tabs {
+.gameNavTabs {
+  justify-self: center;
   display: flex;
-  gap: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.08);
+  gap: 0.15rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.tab {
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
+.navTab {
+  padding: 0.32rem 0.65rem;
+  border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--muted);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
+  font-family: inherit;
 }
 
-.tab:hover {
+.navTab:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.06);
 }
 
-.tabActive {
-  padding: 0.45rem 0.9rem;
-  border-radius: 8px;
+.navTabActive {
+  padding: 0.32rem 0.65rem;
+  border-radius: 6px;
   border: none;
   background: var(--border);
   color: var(--text);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   cursor: pointer;
+  font-family: inherit;
 }
 
-.tabPanel {
-  padding: 1.25rem;
-  min-height: 14rem;
+.gameNavActions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.gameStateText {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.spectateBadge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  background: var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.navEndBtn {
+  padding: 0.28rem 0.55rem !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  border-radius: 6px !important;
+}
+
+.gameBody {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mapColumn {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapWrapFull {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: #1a2f4a;
+}
+
+.mapWrapFull :global(.leaflet-container) {
+  flex: 1;
+  min-height: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mapWrapFull .mapLoading {
+  flex: 1;
+  min-height: 12rem;
+}
+
+.leafletMapFlush {
+  border-radius: 0 !important;
+  min-height: 0 !important;
+}
+
+.routesPanel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.65rem 0;
+  /* Readable line length without side gutters on the outer shell */
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 }
 
 .mapWrap {
   position: relative;
   width: 100%;
   aspect-ratio: 2 / 1;
+  min-height: 320px;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, #0d2137 0%, #0a1628 50%, #071018 100%);
+  background: #1a2f4a;
 }
 
-.mapGrid {
-  position: absolute;
-  inset: 0;
-  opacity: 0.12;
-  background-image: linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 10% 10%;
-  pointer-events: none;
+.leafletMap {
+  height: 100% !important;
+  width: 100% !important;
+  min-height: 280px;
+  border-radius: 10px;
+  z-index: 0;
+  font-family: var(--font, system-ui, sans-serif);
 }
 
-.mapHint {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  right: 0.5rem;
-  font-size: 0.7rem;
-  color: var(--muted);
-  text-align: center;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-.marker {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  background: linear-gradient(145deg, var(--accent) 0%, var(--accent-dim) 100%);
-  color: #fff;
-  font-size: 0.55rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  cursor: pointer;
+.mapLoading {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  min-height: 320px;
+  color: var(--muted);
+  font-size: 0.9rem;
 }
 
-.marker:hover {
-  transform: translate(-50%, -50%) scale(1.08);
-  box-shadow: 0 4px 14px rgba(91, 159, 212, 0.45);
-}
-
-.marker:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.mapHintLeaflet {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  max-width: calc(100% - 1rem);
+  font-size: 0.68rem;
+  color: var(--text);
+  text-align: center;
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  background: rgba(15, 20, 25, 0.55);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .routeList {
@@ -161,7 +250,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 10050;
   background: rgba(5, 10, 18, 0.72);
   display: flex;
   align-items: flex-end;
@@ -273,4 +362,268 @@
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.5rem;
+}
+
+/* Flight schedules tab */
+.scheduleTabRoot {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scheduleIntro {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.scheduleSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+@media (max-width: 720px) {
+  .scheduleSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+.scheduleCol {
+  overflow: auto;
+  padding: 0.35rem 0.5rem 0.75rem;
+  border-right: 1px solid var(--border);
+  min-height: 0;
+}
+
+.scheduleCol:last-child {
+  border-right: none;
+}
+
+@media (max-width: 720px) {
+  .scheduleCol {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .scheduleCol:last-child {
+    border-bottom: none;
+  }
+}
+
+.scheduleColDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}
+
+.scheduleListHeading {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.scheduleEmpty {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.scheduleList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.scheduleListItem {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.scheduleListItem:last-child {
+  border-bottom: none;
+}
+
+.scheduleFlightNo {
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 0.2rem;
+}
+
+.scheduleMeta {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.schedulePlaceholder {
+  padding: 0.5rem 0.25rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.schedulePlaceholder p {
+  margin: 0;
+}
+
+.scheduleManager {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 22rem;
+}
+
+.scheduleManagerTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.scheduleManagerRoute {
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.scheduleFieldLabel {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.scheduleInput {
+  width: 100%;
+  max-width: 12rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.amPmRow {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.amPmBtn,
+.amPmActive {
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.amPmBtn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.amPmActive {
+  background: var(--border);
+  color: var(--text);
+}
+
+.weekdayFieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.weekdayFieldset legend {
+  padding: 0;
+  margin-bottom: 0.35rem;
+}
+
+.dailyLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.45rem;
+  cursor: pointer;
+}
+
+.weekdayGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+}
+
+.weekdayItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.routeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.routeRow:last-child {
+  border-bottom: none;
+}
+
+.routeRowText {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.scheduleManageBtn {
+  flex-shrink: 0;
+  padding: 0.28rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.scheduleManageBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.scheduleManageBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.gameErrorBanner {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  background: rgba(180, 60, 60, 0.2);
+  border-bottom: 1px solid rgba(180, 60, 60, 0.45);
+  color: #f5c2c2;
 }

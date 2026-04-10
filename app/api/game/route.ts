@@ -22,7 +22,17 @@ type Body =
   | { action: "becomeHost" }
   | { action: "start" }
   | { action: "end" }
-  | { action: "createRoutes"; originId: string; destinationIds: string[] };
+  | { action: "createRoutes"; originId: string; destinationIds: string[] }
+  | {
+      action: "saveFlightSchedule";
+      fromId: string;
+      toId: string;
+      flightNumber: string;
+      hour12: number;
+      minute: number;
+      amPm: string;
+      weekdays: number[];
+    };
 
 export async function POST(req: Request) {
   let body: Body;
@@ -92,6 +102,22 @@ export async function POST(req: Request) {
       added: result.added,
       view: toClientView(store.getSnapshot(), playerId),
     });
+  }
+
+  if (body.action === "saveFlightSchedule") {
+    const result = store.saveFlightSchedule(playerId, {
+      fromId: body.fromId,
+      toId: body.toId,
+      flightNumber: body.flightNumber,
+      hour12: body.hour12,
+      minute: body.minute,
+      amPm: body.amPm,
+      weekdays: body.weekdays ?? [],
+    });
+    if (!result.ok) {
+      return json({ ok: false, error: result.error }, { status: 400 });
+    }
+    return json({ ok: true, view: toClientView(store.getSnapshot(), playerId) });
   }
 
   return json({ ok: false, error: "Unknown action." }, { status: 400 });

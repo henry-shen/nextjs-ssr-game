@@ -136,8 +136,8 @@ export function AirportModal({
         {step === "pickDestinations" && (
           <>
             <p className={styles.modalMeta}>
-              From <strong>{airport.iata}</strong>, choose destinations. Confirming adds <strong>both</strong>{" "}
-              directions ({airport.iata} → X and X → {airport.iata}) as one linked pair in your network.
+              From <strong>{airport.iata}</strong>, choose destinations. Confirming creates <strong>two</strong>{" "}
+              routes per hub: {airport.iata} → X and X → {airport.iata}, both listed in the Routes tab.
             </p>
             {localErr ? <p className="err">{localErr}</p> : null}
             <div className={styles.destList}>

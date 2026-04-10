@@ -1,5 +1,6 @@
-import { airportIds } from "./airports";
-import type { GamePayload, GameSnapshot, Player } from "./types";
+import { airportIds, getAirportById } from "./airports";
+import { estimateFlightDurationMinutesBetween } from "./flightDuration";
+import type { DirectedRoute, FlightSchedule, GamePayload, GameSnapshot, Player } from "./types";
 
 /**
  * Single global room (one game at a time). In-memory only.
@@ -27,6 +28,12 @@ function cloneGame(game: GamePayload): GamePayload {
       Object.entries(game.routesByPlayer ?? {}).map(([pid, routes]) => [
         pid,
         routes.map((r) => ({ ...r })),
+      ])
+    ),
+    flightSchedulesByPlayer: Object.fromEntries(
+      Object.entries(game.flightSchedulesByPlayer ?? {}).map(([pid, list]) => [
+        pid,
+        list.map((s) => ({ ...s, weekdays: [...s.weekdays] })),
       ])
     ),
   };
@@ -94,6 +101,7 @@ export function startGame(playerId: string): { ok: true } | { ok: false; error: 
     startedAt: Date.now(),
     tick: 0,
     routesByPlayer: {},
+    flightSchedulesByPlayer: {},
   };
   room.phase = "playing";
   room.game = payload;
@@ -114,13 +122,13 @@ export function endGame(playerId: string): { ok: true } | { ok: false; error: st
   return { ok: true };
 }
 
-function normalizePair(airportA: string, airportB: string): { a: string; b: string } {
-  return airportA < airportB ? { a: airportA, b: airportB } : { a: airportB, b: airportA };
+function routeKey(fromId: string, toId: string): string {
+  return `${fromId}>${toId}`;
 }
 
 /**
- * For each selected destination, adds one undirected pair (representing A↔B service).
- * Duplicate pairs for that player are ignored.
+ * For each selected destination, adds two directed routes: origin → dest and dest → origin.
+ * Skips any leg that already exists for this player.
  */
 export function createRoutesFromHub(
   playerId: string,
@@ -143,7 +151,7 @@ export function createRoutesFromHub(
 
   const game = room.game;
   const list = game.routesByPlayer[playerId] ? [...game.routesByPlayer[playerId]] : [];
-  const existing = new Set(list.map((r) => `${r.a}|${r.b}`));
+  const existing = new Set(list.map((r) => routeKey(r.fromId, r.toId)));
 
   let added = 0;
   for (const raw of destinationIds) {
@@ -153,14 +161,35 @@ export function createRoutesFromHub(
     if (raw === originId) {
       continue;
     }
-    const { a, b } = normalizePair(originId, raw);
-    const key = `${a}|${b}`;
-    if (existing.has(key)) {
-      continue;
+    const fromA = getAirportById(originId);
+    const toA = getAirportById(raw);
+    if (!fromA || !toA) {
+      return { ok: false, error: "Unknown airport for route." };
     }
-    list.push({ id: crypto.randomUUID(), a, b });
-    existing.add(key);
-    added += 1;
+    const legMinutes = estimateFlightDurationMinutesBetween(fromA, toA);
+
+    const outKey = routeKey(originId, raw);
+    if (!existing.has(outKey)) {
+      list.push({
+        id: crypto.randomUUID(),
+        fromId: originId,
+        toId: raw,
+        durationMinutes: legMinutes,
+      });
+      existing.add(outKey);
+      added += 1;
+    }
+    const backKey = routeKey(raw, originId);
+    if (!existing.has(backKey)) {
+      list.push({
+        id: crypto.randomUUID(),
+        fromId: raw,
+        toId: originId,
+        durationMinutes: legMinutes,
+      });
+      existing.add(backKey);
+      added += 1;
+    }
   }
 
   if (added === 0) {
@@ -169,4 +198,79 @@ export function createRoutesFromHub(
 
   game.routesByPlayer[playerId] = list;
   return { ok: true, added };
+}
+
+function hasDirectedRoute(playerId: string, fromId: string, toId: string): DirectedRoute | undefined {
+  const game = room.game;
+  if (!game) return undefined;
+  return (game.routesByPlayer[playerId] ?? []).find((r) => r.fromId === fromId && r.toId === toId);
+}
+
+export function saveFlightSchedule(
+  playerId: string,
+  data: {
+    fromId: string;
+    toId: string;
+    flightNumber: string;
+    hour12: number;
+    minute: number;
+    amPm: string;
+    weekdays: number[];
+  }
+): { ok: true } | { ok: false; error: string } {
+  if (room.phase !== "playing" || !room.game) {
+    return { ok: false, error: "The simulation is not running." };
+  }
+  if (!findPlayer(playerId)) {
+    return { ok: false, error: "You are not in this room." };
+  }
+
+  const route = hasDirectedRoute(playerId, data.fromId, data.toId);
+  if (!route) {
+    return { ok: false, error: "You do not have this route." };
+  }
+
+  const fn = data.flightNumber.trim().toUpperCase();
+  if (!fn || !/^GA\d+$/i.test(fn)) {
+    return { ok: false, error: "Flight number must look like GA1, GA2, …" };
+  }
+
+  if (data.hour12 < 1 || data.hour12 > 12 || ![0, 30].includes(data.minute)) {
+    return { ok: false, error: "Invalid departure time." };
+  }
+
+  const ap = data.amPm.toUpperCase();
+  if (ap !== "AM" && ap !== "PM") {
+    return { ok: false, error: "Select AM or PM." };
+  }
+
+  const days = [...new Set(data.weekdays)]
+    .filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6)
+    .sort((a, b) => a - b);
+  if (days.length === 0) {
+    return { ok: false, error: "Pick at least one day of the week (or Daily)." };
+  }
+
+  const game = room.game;
+  const schedules = [...(game.flightSchedulesByPlayer[playerId] ?? [])];
+  for (const s of schedules) {
+    if (s.flightNumber.trim().toUpperCase() === fn) {
+      return { ok: false, error: "That flight number is already in use." };
+    }
+  }
+
+  schedules.push({
+    id: crypto.randomUUID(),
+    fromId: data.fromId,
+    toId: data.toId,
+    flightNumber: fn,
+    hour12: data.hour12,
+    minute: data.minute as 0 | 30,
+    amPm: ap as "AM" | "PM",
+    weekdays: days as FlightSchedule["weekdays"],
+    durationMinutes: route.durationMinutes,
+  });
+
+  game.flightSchedulesByPlayer[playerId] = schedules;
+  return { ok: true };
 }

@@ -1,0 +1,63 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-align: center;
+  max-width: 16rem;
+}
+
+.svg {
+  width: min(220px, 100%);
+  height: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.face {
+  fill: rgba(0, 0, 0, 0.35);
+}
+
+.rim {
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.num {
+  fill: var(--muted);
+  font-size: 15px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.numSel {
+  composes: num;
+  fill: var(--accent);
+}
+
+.tick {
+  stroke: rgba(139, 156, 179, 0.35);
+  pointer-events: none;
+}
+
+.tickSel {
+  stroke: var(--accent);
+  pointer-events: none;
+}
+
+.pivot {
+  fill: var(--text);
+  pointer-events: none;
+}
+
+.selection {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}

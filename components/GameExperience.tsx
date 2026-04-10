@@ -19,7 +19,6 @@ async function fetchView(): Promise<ClientGameView> {
 export function GameExperience({ initialView }: Props) {
   const [view, setView] = useState<ClientGameView>(initialView);
   const [name, setName] = useState("");
-  const [asHost, setAsHost] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -65,7 +64,6 @@ export function GameExperience({ initialView }: Props) {
   }
 
   const hostTaken = view.hostId !== null && view.hostId !== view.yourPlayerId;
-  const canCheckHost = view.canJoinLobby && !hostTaken;
   /** Prefer matching ids so we still show controls if the session cookie syncs correctly. */
   const isRoomHost =
     view.yourPlayerId != null &&
@@ -76,14 +74,18 @@ export function GameExperience({ initialView }: Props) {
     view.phase === "playing" && view.game && (view.youArePlayer || view.mustObserve);
 
   return (
-    <main className={showAirline ? "mainWide" : undefined}>
-      <h1>Lobby game</h1>
-      <p className="lead">
-        One room, one game at a time. Join in the lobby, one host starts play, late visitors watch until
-        the host ends the round.
-      </p>
+    <main className={showAirline ? "mainGameFullscreen" : undefined}>
+      {!showAirline ? (
+        <>
+          <h1>Lobby game</h1>
+          <p className="lead">
+            One room, one game at a time. Join in the lobby, one host starts play, late visitors watch until
+            the host ends the round.
+          </p>
+        </>
+      ) : null}
 
-      {view.mustObserve && (
+      {view.mustObserve && !showAirline && (
         <div className="card">
           <h2>Spectating</h2>
           <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.95rem" }}>
@@ -107,32 +109,34 @@ export function GameExperience({ initialView }: Props) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
           />
-          <label className="check">
-            <input
-              type="checkbox"
-              checked={asHost}
-              disabled={!canCheckHost}
-              onChange={(e) => setAsHost(e.target.checked)}
-            />
-            Join as host (only one host)
-          </label>
           {hostTaken && (
             <p className="mono" style={{ margin: "0 0 0.75rem" }}>
-              Host seat is taken — join as a player.
+              Host seat is taken — use Join, or wait for an empty host slot.
             </p>
           )}
-          <button
-            type="button"
-            className="primary"
-            disabled={busy || !name.trim()}
-            onClick={() => postGame({ action: "join", name: name.trim(), asHost })}
-          >
-            Join
-          </button>
+          <div className="row" style={{ marginTop: "0.5rem" }}>
+            <button
+              type="button"
+              className="primary"
+              disabled={busy || !name.trim()}
+              onClick={() => postGame({ action: "join", name: name.trim(), asHost: false })}
+            >
+              Join
+            </button>
+            <button
+              type="button"
+              className="secondary"
+              disabled={busy || !name.trim() || hostTaken}
+              title={hostTaken ? "A host is already in this room" : undefined}
+              onClick={() => postGame({ action: "join", name: name.trim(), asHost: true })}
+            >
+              Join as host
+            </button>
+          </div>
         </div>
       )}
 
-      {(view.youArePlayer || view.mustObserve) && (
+      {(view.youArePlayer || view.mustObserve) && !showAirline && (
         <div className="card">
           <h2>Room</h2>
           <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem" }}>
@@ -156,8 +160,8 @@ export function GameExperience({ initialView }: Props) {
           <h2>No host yet</h2>
           {error ? <p className="err">{error}</p> : null}
           <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.9rem" }}>
-            Someone must be the host before the game can start. If you forgot to check &quot;Join as
-            host&quot;, claim the host seat here (only while it is empty).
+            Someone must be the host before the game can start. If you joined as a player only, claim the
+            host seat here (only while it is empty).
           </p>
           <div className="row">
             <button
@@ -196,6 +200,7 @@ export function GameExperience({ initialView }: Props) {
           showEndGame={!!isRoomHost}
           onEndGame={() => void postGame({ action: "end" })}
           postGame={postGame}
+          requestError={error}
         />
       )}
     </main>
